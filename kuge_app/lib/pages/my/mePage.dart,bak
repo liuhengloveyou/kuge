@@ -1,0 +1,324 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:toast/toast.dart';
+import 'downloadManagerPage.dart';
+
+class MePage extends StatefulWidget {
+  @override
+  MePageState createState() => MePageState();
+}
+
+class MePageState extends State<MePage> {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<UserAccount>().fetchUserInfo();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Widget _myListTile(Icon icon, String title, Widget rightTitle, GestureTapCallback onTap){
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(width: 1,color: Colors.black12)
+        )
+      ),
+      child: ListTile(
+        leading: icon,
+        title: Row(children: [
+          Text(
+            title,
+            textAlign: TextAlign.left,
+        ),
+        if (rightTitle != null)
+          Expanded(child: rightTitle),
+        ]), 
+        trailing: Icon(Icons.keyboard_arrow_right),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _topHeader(BuildContext context, UserAccount userInfo) {
+    String userName = "末登录";
+    String cellphone = "-";
+    if (userInfo.isLogin) {
+      userName = userInfo.nickName;
+      cellphone = userInfo.cellphone;
+    }
+
+    var avatar = CircleAvatar(
+      backgroundColor: Theme.of(context).primaryColor,
+      backgroundImage: AssetImage("assets/images/icon_renqi.png"), //CachedNetworkImageProvider(userInfo["avatarUrl"]),
+    );
+    if ("" != userInfo.avatarUrl) {
+      avatar = CircleAvatar(
+        backgroundColor: Theme.of(context).primaryColor,
+        backgroundImage: CachedNetworkImageProvider("$AVATAR_HOST${userInfo.avatarUrl}"),
+      );
+    }
+
+    return Row(children: <Widget>[
+      Container(
+        margin: EdgeInsets.all(10),
+        width: ScreenUtil().setWidth(155),
+        height: ScreenUtil().setWidth(155),
+        child: avatar,
+      ),
+      Expanded(child: Column(children: [
+        Container(
+           margin: EdgeInsets.only(left: 10, top: 10),
+           alignment: Alignment.centerLeft,
+           child: Text(userName,style: TextStyle(fontWeight: FontWeight.bold, fontSize: ScreenUtil().setSp(36)),
+            ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          margin: EdgeInsets.only(left: 10, top: 8),
+          child: Text(
+            '手机号码: ' + cellphone,
+            style: TextStyle(fontSize: ScreenUtil().setSp(26)),
+          ),
+      )])
+      ),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var _userInfo = context.watch<UserAccount>();
+
+    return Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          title: Text('我的账号'),
+          centerTitle: true,
+          actions: <Widget>[
+            IconButton(icon: Icon(Icons.search), onPressed: () {
+              Navigator.push(context,SearchPageRoute(ProxyAnimation(kAlwaysDismissedAnimation)));
+            }),
+          ],
+        ),
+        // backgroundColor: Colors.white,
+        body: ListView(
+          children: <Widget>[
+            _topHeader(context, _userInfo),
+            Container(
+              margin: EdgeInsets.only(top: 16),
+              child: Column(children: <Widget>[
+                _myListTile(Icon(Icons.cloud_download),'本地下载音乐', null, (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return DownLoadMangerPage();
+                  }));
+                }),
+                _myListTile(Icon(Icons.library_music),'我的收藏', null, (){
+                  Navigator.pushNamed(context, ROUTE_MY_COLLECTION);
+                }),
+                _myListTile(Icon(Icons.schedule),'播放记录', null, (){
+                  Navigator.pushNamed(context, RoutePlayHistory);
+                }),
+              ]),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              child: Column(children: <Widget>[
+                _myListTile(null,'头像', null, (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return SimpleImageEditor();
+                  }));
+                }),
+                _myListTile(null,'名字', null, (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return SetNamePage();
+                  }));
+                }),
+                _myListTile(null,'性别', null, (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return SetSexPage();
+                  }));
+                }),
+                _myListTile(null,'修改密码', null, (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return SetPWDPage();
+                  }));
+                }),
+              ]),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              child: Column(children: <Widget>[
+                _myListTile(null,'设置密码保护问题', null, (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return SetPWDQuestionPage();
+                  }));
+                })
+              ]),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 16),
+              padding: EdgeInsets.only(left: 8, right: 8),
+              child: MaterialButton(
+                minWidth: double.infinity,
+                color: Colors.red,
+                textColor: Colors.white,
+                child: Text("退 出"),
+                onPressed: (){
+                  _userInfo.userLogout();
+                })
+            )
+
+            // Container(
+            //   margin: EdgeInsets.only(top: 10),
+            //   decoration: BoxDecoration(
+            //     color: Colors.white,
+            //     border: Border(
+            //       bottom: BorderSide(
+            //         width: 1,
+            //         color: Colors.black12
+            //       )
+            //     )
+            //   ),
+            //   child: ListTile(
+            //     leading: Icon(Icons.list),
+            //     title: Text('我的订单'),
+            //     trailing: Icon(Icons.arrow_right),
+            //   ),
+            // ),
+            // Container(
+            //   margin: EdgeInsets.only(top: 5),
+            //   width: ScreenUtil().setWidth(750),
+            //   height: ScreenUtil().setHeight(150),
+            //   padding: EdgeInsets.only(top: 20),
+            //   color: Colors.white,
+            //   child: Row(
+            //     children: <Widget>[
+            //       Container(
+            //         width: ScreenUtil().setWidth(187),
+            //         child: Column(
+            //           children: <Widget>[
+            //             Icon(
+            //               Icons.party_mode,
+            //               size: 30,
+            //             ),
+            //             Text('待付款')
+            //           ],
+            //         ),
+            //       ),
+
+            //       Container(
+            //         width: ScreenUtil().setWidth(187),
+            //         child: Column(
+            //           children: <Widget>[
+            //             Icon(
+            //               Icons.query_builder,
+            //               size: 30,
+            //             ),
+            //             Text('待发货')
+            //           ],
+            //         ),
+            //       ),
+
+            //       Container(
+            //         width: ScreenUtil().setWidth(187),
+            //         child: Column(
+            //           children: <Widget>[
+            //             Icon(
+            //               Icons.directions_car,
+            //               size: 30,
+            //             ),
+            //             Text('待收货')
+            //           ],
+            //         ),
+            //       ),
+
+            //       Container(
+            //         width: ScreenUtil().setWidth(187),
+            //         child: Column(
+            //           children: <Widget>[
+            //             Icon(
+            //               Icons.content_paste,
+            //               size: 30,
+            //             ),
+            //             Text('待评价')
+            //           ],
+            //         ),
+            //       )
+            //     ],
+            //   ),
+            // ),
+            // // _PinnedHeader(),
+            // // Text("data"),
+            // // _PinnedHeader(),
+          ],
+          // mainAxisSize: MainAxisSize.min,
+        ));
+  }
+}
+
+class _PinnedHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        if (!Provider.of<UserAccount>(context).isLogin)
+          DividerWrapper(
+            child: ListTile(
+                title: Text("当前未登录，点击登录!"),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () => Navigator.pushNamed(context, pageLogin)),
+          ),
+        DividerWrapper(
+            indent: 16,
+            child: ListTile(
+              leading: Icon(
+                Icons.schedule,
+                color: Theme.of(context).iconTheme.color,
+              ),
+              title: Text('播放记录'),
+              onTap: () {
+                if (Provider.of<UserAccount>(context).isLogin) {
+                  // context.secondaryNavigator.push(MaterialPageRoute(builder: (context) {
+                  //   return RecordPage(uid: Provider.of<UserAccount>(context).userId);
+                  // }));
+                } else {
+                  //todo show login dialog
+                }
+              },
+            )),
+        DividerWrapper(
+            indent: 16,
+            child: ListTile(
+              leading: Icon(
+                Icons.cloud_download,
+                color: Theme.of(context).iconTheme.color,
+              ),
+              title: Text.rich(TextSpan(children: [
+                TextSpan(text: '本地下载音乐'),
+              ])),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return DownLoadMangerPage();
+                }));
+              },
+            )),
+        ListTile(
+          leading: Icon(Icons.library_music, color: Theme.of(context).iconTheme.color),
+          title: Text('我的收藏'),
+          onTap: () {
+             Navigator.pushNamed(context, ROUTE_MY_COLLECTION);
+          },
+        ),
+        Container(height: 8, color: Theme.of(context).dividerColor),
+      ]..removeWhere((v) => v == null),
+    );
+  }
+}

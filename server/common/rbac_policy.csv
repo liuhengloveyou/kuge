@@ -1,0 +1,6 @@
+p, alice, data1, read
+p, bob, data2, write
+p, data2_admin, data2, *
+g, bob, data2_admin
+g, alice, data2_admin
+g, u3, data2_admin

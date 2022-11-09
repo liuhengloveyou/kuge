@@ -1,0 +1,21 @@
+pid: "/tmp/kuge.pid"
+addr: "0.0.0.0:10003"
+log_dir: "./logs/" # 日志目录
+log_level: "debug"
+mysql: "root:lhisroot@tcp(127.0.0.1:3306)/kuge?charset=utf8mb4&parseTime=true&loc=Local"
+
+host_name: "http://music.ygj.pub"
+img_server: "http://files.ygj.pub"
+
+admin_user_names:
+  - "17688396387"
+
+app_version: {
+  version: "3.0.0",
+	content: "update demo",
+	url: "http://m.kuge.com/release/kuge.apk",
+  app_type: 1,
+  is_update: 0,
+  is_sensitive: 0
+}
+  

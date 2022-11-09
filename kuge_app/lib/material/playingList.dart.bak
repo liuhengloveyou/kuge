@@ -1,0 +1,269 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:kuge_app/model/music.model.dart';
+import 'package:provider/provider.dart';
+import 'package:toast/toast.dart';
+
+class MusicTile extends StatelessWidget {
+
+
+  // static final Widget Function(BuildContext context, Music music) defaultTrailingBuilder = (context, music) {
+  //   return Row(
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: <Widget>[_IconMore(music)],
+  //   );
+  // };
+
+  // static final Widget Function(BuildContext context, Music music) indexedLeadingBuilder = (context, music) {
+  //   int index = MusicTileConfiguration.of(context).musics.indexOf(music) + 1;
+  //   return _buildPlayingLeading(context, music) ??  Container(
+  //         margin: const EdgeInsets.only(left: 8, right: 8),
+  //         width: 40,
+  //         height: 40,
+  //         child: Center(
+  //           child: Text(
+  //             index.toString(),
+  //             style: Theme.of(context).textTheme.bodyText1,
+  //           ),
+  //         ),
+  //       );
+  // };
+
+  static final Widget Function(BuildContext context, MusicModel music) coverLeadingBuilder = (context, music) {
+    return _buildPlayingLeading(context, music) ??
+        Container(
+          margin: const EdgeInsets.only(left: 8, right: 8),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: FadeInImage(
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+              image: CachedNetworkImageProvider(music.picUrl?.toString() ?? ""),
+              placeholder: AssetImage("assets/playlist_playlist.9.png"),
+            ),
+          ),
+        );
+  };
+
+  //return null if current music is not be playing
+  static Widget _buildPlayingLeading(BuildContext context, MusicModel music) {
+    // if (MusicTileConfiguration.of(context).token == context.playList.queueId && music == context.playerValue.current) {
+    //   return Container(
+    //     margin: const EdgeInsets.only(left: 8, right: 8),
+    //     width: 40,
+    //     height: 40,
+    //     child: Center(
+    //       child:
+    //           Icon(Icons.volume_up, color: Theme.of(context).primaryColorLight),
+    //     ),
+    //   );
+    // }
+    return null;
+  }
+
+  static final void Function(BuildContext context, MusicModel muisc) defaultOnTap = (context, music) {
+    // final list = MusicTileConfiguration.of(context);
+    // final player = context.player;
+    // final PlayQueue playList = player.value.queue;
+
+    // if (playList.queueId == list.token && player.playbackState.isPlaying && player.metadata == music.metadata) {
+    //   Navigator.pushNamed(context, pagePlaying); //open playing page
+    // } else {
+    //   LogUtil.e("play#####################${music.toMap()}");
+    //   context.player.playWithQueue(
+    //     PlayQueue(
+    //       queue: list.queue,
+    //       queueId: list.token,
+    //       queueTitle: list.token),
+    //     metadata: music.metadata);
+    // }
+  };
+
+
+  // final Widget Function(BuildContext context, Music music) leadingBuilder;
+  // final Widget Function(BuildContext context, Music music) trailingBuilder;
+  // final void Function(Music music) remove;
+
+  final String token;
+  final List<MusicModel> musics;
+  final Widget child;
+
+  MusicTile(
+      {Key key,
+      this.token,
+      @required this.musics,
+      this.child,
+      this.leadingBuilder,
+      this.trailingBuilder,
+      this.remove})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return child;
+  }
+}
+
+/// music item widget
+class MusicTile extends StatelessWidget {
+  final MusicModel music;
+
+  MusicTile({Key key, @required this.music}) : super(key: key);
+
+  Widget _buildPadding(BuildContext context, MusicModel music) {
+    return SizedBox(width: 8);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final list = MusicTileConfiguration.of(context);
+    return Container(
+      height: 56,
+      child: InkWell(
+        onTap: () async {
+          var rst = await context.read<KugeAudioPlayer>().play(music);
+          if (rst == -1) {
+            Toast.show("文件错误", context, duration: Toast.LENGTH_LONG);
+          }
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            (list.leadingBuilder ?? _buildPadding)(context, music),
+            Expanded(child: _SimpleMusicTile(music),),
+            (list.trailingBuilder ?? _buildPadding)(context, music),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SimpleMusicTile extends StatelessWidget {
+  final MusicModel music;
+
+  const _SimpleMusicTile(this.music, {Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 56,
+      child: Row(
+        children: <Widget>[
+          Expanded(
+              child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Spacer(),
+              Text(
+                music.getTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyText2,
+              ),
+              Padding(padding: EdgeInsets.only(top: 3)),
+              Text(
+                music.subTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.caption,
+              ),
+              Spacer(),
+            ],
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+/// The header view of MusicList
+class MusicListHeader extends StatelessWidget implements PreferredSizeWidget {
+  final  List<Music> musicList;
+  final Widget tail;
+
+  MusicListHeader(this.musicList, {this.tail});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      child: Material(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        child: InkWell(
+          onTap: () async {
+            await context.read<KugeAudioPlayer>().addMusicListToPlayingList(this.musicList);
+          },
+          child: SizedBox.fromSize(
+            size: preferredSize,
+            child: Row(
+              children: <Widget>[
+                Padding(padding: EdgeInsets.only(left: 16)),
+                Icon(Icons.play_circle_outline,color: Theme.of(context).iconTheme.color),
+                Padding(padding: EdgeInsets.only(left: 4)),
+                Text("播放全部",style: Theme.of(context).textTheme.bodyText2),
+                Padding(padding: EdgeInsets.only(left: 2)),
+                Text("(共${musicList.length}首)", style: Theme.of(context).textTheme.caption),
+                Spacer(),
+                // Container(child: tail,
+                //   margin: EdgeInsets.all(0),
+                //   padding: EdgeInsets.all(0),
+                // ),
+              ]..removeWhere((v) => v == null),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(50);
+}
+
+class _IconMore extends StatelessWidget {
+  final Music music;
+
+  const _IconMore(this.music, {Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton(
+      icon: Icon(Icons.more_vert),
+      itemBuilder: _buildMenu,
+      onSelected: (type) => _handleMusicAction(context, type),
+    );
+  }
+
+  List<PopupMenuItem> _buildMenu(BuildContext context) {
+    var items = [
+      PopupMenuItem(
+        child: Text("下载"),
+        value: "下载",
+      ),
+      PopupMenuItem(
+        child: Text("收藏"),
+        value: "收藏",
+      ),
+    ];
+    return items;
+  }
+
+  void _handleMusicAction(BuildContext context, String type) async {
+    switch (type) {
+      case "下载":
+        final rst = await DownloaderManager.getInstance().download(context, music.downloadUrl, music.downloadName, music.toJson());
+        if (rst == -3) {
+          Toast.show("文件错误", context, duration: Toast.LENGTH_LONG);
+        } else if (rst == -2) {
+          Toast.show("下载任务已存在", context, duration: Toast.LENGTH_LONG);
+        } else {
+          Toast.show("下载任务添加成功", context, duration: Toast.LENGTH_LONG);
+        }
+        break;
+    }
+  }
+}
